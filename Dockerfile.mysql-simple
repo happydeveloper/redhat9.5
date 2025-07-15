@@ -1,0 +1,35 @@
+FROM registry.access.redhat.com/ubi9/ubi:9.5
+
+# 필수 패키지 설치
+RUN dnf update -y \
+ && dnf install -y sudo iproute net-tools iputils vim-minimal tar wget \
+ && dnf clean all
+
+# MySQL 8.0 저장소 추가 (ARM64 호환)
+RUN dnf install -y https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm \
+ && dnf module disable -y mysql \
+ && dnf install -y mysql-community-server mysql-community-client \
+ && dnf clean all
+
+# MySQL 설정 디렉토리 생성
+RUN mkdir -p /var/lib/mysql /var/log/mysql /etc/mysql/conf.d
+
+# MySQL 설정 파일 생성
+RUN echo '[mysqld]' > /etc/mysql/conf.d/mysql.cnf \
+ && echo 'default_authentication_plugin=mysql_native_password' >> /etc/mysql/conf.d/mysql.cnf \
+ && echo 'bind-address=0.0.0.0' >> /etc/mysql/conf.d/mysql.cnf
+
+# 환경 변수 설정
+ENV MYSQL_ROOT_PASSWORD=root
+ENV MYSQL_DATABASE=test
+ENV MYSQL_USER=user
+ENV MYSQL_PASSWORD=password
+
+# 포트 노출
+EXPOSE 3306
+
+# 시작 스크립트
+COPY start-mysql-simple.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start-mysql-simple.sh
+
+CMD ["/usr/local/bin/start-mysql-simple.sh"] 
