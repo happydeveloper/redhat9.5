@@ -1,0 +1,8 @@
+FROM registry.access.redhat.com/ubi9/ubi:9.5
+
+# 필수 패키지 설치
+RUN dnf update -y \
+ && dnf install -y sudo iproute net-tools iputils vim-minimal tar \
+ && dnf clean all
+
+CMD ["/bin/bash"]
